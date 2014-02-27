@@ -6,8 +6,8 @@
 #include    "element.h"
 
 int main(){
-    std::vector<Node>   nodes;
-    std::vector<Element>    elements;
+    std::vector<Node>   globalNodes;
+    std::vector<FourNodeQuadrilateralElement>    elements;
 
     std::cout << "reading nodes ... ";
     Node node;
@@ -15,21 +15,26 @@ int main(){
     if (!iFile) std::cerr << "unknown node file" << std::endl;
     while   (!iFile.eof()){
         iFile >> node.x >> node.y >> node.bc >> node.bcX >> node.bcY;
-        nodes.push_back(node);
+        globalNodes.push_back(node);
     }
     iFile.close();
-    std::cout << nodes.size() << " read" << std::endl;
+    std::cout << globalNodes.size() << " read" << std::endl;
 
     std::cout << "reading elements ... ";
-    Element element;
+    FourNodeQuadrilateralElement element;
     iFile.open("elements.txt");
     if (!iFile) std::cerr << "unknown element file" << std::endl;
     while   (!iFile.eof()){
-        iFile >> element.ll >> element.lr >> element.ur >> element.ul;
+        iFile >> element;
         elements.push_back(element);
     }
     iFile.close();
     std::cout << elements.size() << " read" << std::endl;
+
+    FourNodeQuadrilateralElement::typeK    outK;
+    elements.at(0).K(globalNodes, outK);
+
+    std::cout << outK << std::endl;
 
     return 0;
 }
