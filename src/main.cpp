@@ -92,7 +92,14 @@ int main(){
     std::cout << "solving!!!" << std::endl;
     //perhaps looking for a more suitable solver
     d.bottomRows(globalNodes.size() - nextE) = KF.colPivHouseholderQr().solve(fF - KFE * d.topRows(nextE));
-    std::cout << d << std::endl;
+
+    std::cout << "outputting temperature map ... ";
+    std::ofstream   ofile("temperaturemap.txt");
+    for (const Node& nd : globalNodes){
+        ofile << nd.mX << "\t" << nd.mY << "\t" << d(nd.mPosition) << std::endl;
+    }
+    ofile.close();
+    std::cout << "done" << std::endl;
 
     return 0;
 }
