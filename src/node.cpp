@@ -1,17 +1,12 @@
-#include    <iostream>
 #include    "node.h"
 
-std::istream& operator >> (std::istream& stream, BC& bc){
-    char    ch;
-    stream >> ch;
-    if (ch=='D')
-        bc = BC::D;
-    else if (ch=='N')
-        bc = BC::N;
-    else{
-        std::cerr << "unknown boundary condition: " << ch << std::endl;
-        std::cerr << "defaulting to N" << std::endl;
-    }
+#include    <cmath>
 
-    return stream;
+double  Node::NodeDistance(const Node& nd2) const {
+    return sqrt((mX - nd2.mX)*(mX - nd2.mX) + (mY - nd2.mY)*(mY - nd2.mY));
+}
+
+std::istream& operator >> (std::istream& stream, Node& node){
+    stream >> node.mX >> node.mY >> node.mBC.mType>> node.mBC.mX >> node.mBC.mY;
+    return  stream;
 }

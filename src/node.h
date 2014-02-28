@@ -1,17 +1,20 @@
 #ifndef NODE_H_INCLUDED
 #define NODE_H_INCLUDED
 
-#include    <sstream>
+#include    "boundary_condition.h"
 
-enum class BC {N, D};
-std::istream& operator >> (std::istream& stream, BC& bc);
+class   Node{
+public:
+    double  mX;
+    double  mY;
+    BC      mBC;
+    int     mPosition;  ///< storage for reordered position
 
-struct   Node{
-    double  x;
-    double  y;
-    BC      bc;
-    double  bcX;
-    double  bcY;
+    double  NodeDistance(const Node& nd2) const;
     };
+
+
+
+std::istream& operator >> (std::istream& stream, Node& node);
 
 #endif // NODE_H_INCLUDED

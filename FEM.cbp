@@ -35,12 +35,14 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="src/boundary_condition.cpp" />
+		<Unit filename="src/boundary_condition.h" />
+		<Unit filename="src/element.cpp" />
 		<Unit filename="src/element.h" />
+		<Unit filename="src/gauss_quadrature.h" />
 		<Unit filename="src/main.cpp" />
 		<Unit filename="src/node.cpp" />
 		<Unit filename="src/node.h" />
-		<Unit filename="src/shape_function.cpp" />
-		<Unit filename="src/shape_function.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />
