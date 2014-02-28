@@ -1,6 +1,8 @@
 #include    <iostream>
 #include    "boundary_condition.h"
 
+const   BC  BC::DEFAULT;
+
 std::istream& operator >> (std::istream& stream, BCType& type){
     char    ch;
     stream >> ch;

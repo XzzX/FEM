@@ -8,9 +8,10 @@ std::istream& operator >> (std::istream& stream, BCType& type);
 
 class   BC{
 public:
-    BCType  mType;
-    double  mX;
-    double  mY;
+    static const BC DEFAULT;
+    BCType  mType = BCType::N;
+    double  mX = 0;
+    double  mY = 0;
 };
 std::istream& operator >> (std::istream& stream, BC& bc);
 

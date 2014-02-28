@@ -6,9 +6,15 @@
 #include    "node.h"
 #include    "element.h"
 
+
+///!!!!!!!!!!!!ATTENTION!!!!!!!!!!!!!!!!
+///Pay attention to std::vector relocation after push_back especially for refinement loop -> kills this pointer!!!!!!!
+///!!!!!!!!!!!!ATTENTION!!!!!!!!!!!!!!!!
 int main(){
     std::vector<Node>                           globalNodes; ///< all nodes in global numbering
+	globalNodes.reserve(1000);
     std::vector<FourNodeQuadrilateralElement>   elements;    ///< list of all elements
+	elements.reserve(1000);
 
     std::cout << "reading nodes ... ";
     Node node;
@@ -31,6 +37,15 @@ int main(){
     }
     iFile.close();
     std::cout << elements.size() << " read" << std::endl;
+
+    std::cout << "refining mesh ... ";
+	for (unsigned int n = 0; n < 4; n++){
+		unsigned int	maxElements = elements.size();
+		for (unsigned int i = 0; i < maxElements; i++){
+			elements.at(i).Refine(globalNodes, elements);
+		}
+	}
+    std::cout << "done" << std::endl;
 
     std::cout << "sorting nodes ... ";
     //E stands for essential nodes (dirichlet boundary)
@@ -66,24 +81,26 @@ int main(){
     FourNodeQuadrilateralElement::typeK outK;
     Eigen::Matrix<double, 4, 1>         outf;
     Eigen::MatrixXd KFE(globalNodes.size() - nextE, nextE);
+	KFE.setZero();
     Eigen::MatrixXd KF(globalNodes.size() - nextE, globalNodes.size() - nextE);
+	KF.setZero();
     Eigen::MatrixXd fF(globalNodes.size() - nextE, 1);
-    KF.setZero();
     fF.setZero();
-    for (const FourNodeQuadrilateralElement& ele : elements){
-        ele.K(globalNodes, outK);
-        ele.f(globalNodes, outf);
-        for (unsigned int i = 0; i < ele.mNodes.size(); i++){
-            if (globalNodes.at(ele.mNodes.at(i)).mPosition < nextE) continue;
-            for (unsigned int j = 0; j < ele.mNodes.size(); j++){
-                if (globalNodes.at(ele.mNodes.at(j)).mPosition < nextE){
-                    KFE(globalNodes.at(ele.mNodes.at(i)).mPosition - nextE, globalNodes.at(ele.mNodes.at(j)).mPosition) += outK(i,j);
+	for (unsigned int k = 0; k < elements.size(); k++) {
+        elements.at(k).K(globalNodes, outK);
+		elements.at(k).f(globalNodes, outf);
+
+		for (unsigned int i = 0; i < elements.at(k).mNodes.size(); i++) {
+			if (globalNodes.at(elements.at(k).mNodes.at(i)).mPosition < nextE) continue;
+			for (unsigned int j = 0; j < elements.at(k).mNodes.size(); j++) {
+				if (globalNodes.at(elements.at(k).mNodes.at(j)).mPosition < nextE) {
+					KFE(globalNodes.at(elements.at(k).mNodes.at(i)).mPosition - nextE, globalNodes.at(elements.at(k).mNodes.at(j)).mPosition) += outK(i, j);
                 } else {
-                    KF(globalNodes.at(ele.mNodes.at(i)).mPosition - nextE, globalNodes.at(ele.mNodes.at(j)).mPosition - nextE) += outK(i, j);
+					KF(globalNodes.at(elements.at(k).mNodes.at(i)).mPosition - nextE, globalNodes.at(elements.at(k).mNodes.at(j)).mPosition - nextE) += outK(i, j);
                 }
             }
 
-            fF(globalNodes.at(ele.mNodes.at(i)).mPosition - nextE, 0) = outf(i,0);
+			fF(globalNodes.at(elements.at(k).mNodes.at(i)).mPosition - nextE, 0) = outf(i, 0);
         }
     }
 
@@ -91,7 +108,7 @@ int main(){
 
     std::cout << "solving!!!" << std::endl;
     //perhaps looking for a more suitable solver
-    d.bottomRows(globalNodes.size() - nextE) = KF.colPivHouseholderQr().solve(fF - KFE * d.topRows(nextE));
+	d.bottomRows(globalNodes.size() - nextE) = KF.colPivHouseholderQr().solve(fF - KFE * d.topRows(nextE));
 
     std::cout << "outputting temperature map ... ";
     std::ofstream   ofile("temperaturemap.txt");

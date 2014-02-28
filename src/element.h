@@ -53,12 +53,13 @@ public:
     typedef Eigen::Matrix<double, 2, 4> typeB;
     typedef Eigen::Matrix<double, 4, 4> typeK;
 
-    std::vector<int32_t>    mNodes; ///< local->global nodes conversion table
-    std::vector<BC>         mBCs;
+    std::vector<int>		mNodes; ///< local->global nodes conversion table
+    std::vector<BC>			mBCs;
     Eigen::MatrixXd         mD; ///< conductivity matrix
     double                  mS; ///< global source
 
     FourNodeQuadrilateralElement();
+	FourNodeQuadrilateralElement& operator = (const FourNodeQuadrilateralElement& rhs);
 
     typeN&    N(const double xi, const double eta, typeN& outN) const ;
     typeJ&    J(const std::vector<Node>& globalNodes, const double xi, const double eta, typeJ& outJ) const ;
@@ -70,6 +71,7 @@ public:
     Eigen::Matrix<double, 4, 1>&    f(const std::vector<Node>& globalNodes, Eigen::Matrix<double, 4, 1>& outf) const ;
 
     bool    CheckBoundaries(const std::vector<Node>& globalNodes) const;
+    void    Refine(std::vector<Node>& globalNodes, std::vector<FourNodeQuadrilateralElement>& elements);
 };
 
 std::istream& operator >> (std::istream& stream, FourNodeQuadrilateralElement& element);

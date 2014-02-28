@@ -39,3 +39,6 @@ Thumbs.db
 #Code::Blocks
 *.layout
 *.depend
+FEM*
+Debug/*
+Release/*

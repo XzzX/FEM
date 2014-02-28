@@ -13,10 +13,25 @@ FourNodeQuadrilateralElement::FourNodeQuadrilateralElement() : mNodes(4,-1), mBC
     mD(0,0) = 5;
     mD(1,1) = 5;
 }
+
+FourNodeQuadrilateralElement& FourNodeQuadrilateralElement::operator=(const FourNodeQuadrilateralElement& rhs) {
+	// Now, swap the data members with the temporary:
+	mNodes = rhs.mNodes;
+	mBCs = rhs.mBCs;
+	mD(0, 0) = rhs.mD(0, 0);
+	mD(0, 1) = rhs.mD(0, 1);
+	mD(1, 0) = rhs.mD(1, 0);
+	mD(1, 1) = rhs.mD(1, 1);
+	mS = rhs.mS;
+
+	return *this;
+}
+
 ////!!!!!!!!!!!!!!!!!!!!!!IMPLEMENT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 bool    FourNodeQuadrilateralElement::CheckBoundaries(const std::vector<Node>& globalNodes) const{
     //check if face boundaries match node boundaries
     std::cout << "not yet implemented" << std::endl;
+	return true;
 }
 
 Eigen::Matrix<double, 4, 1>&    FourNodeQuadrilateralElement::N(const double xi, const double eta, Eigen::Matrix<double, 4, 1>& outN) const {
@@ -131,6 +146,61 @@ Eigen::Matrix<double, 4, 1>&    FourNodeQuadrilateralElement::f(const std::vecto
     outf += outfq;
 
     return outf;
+}
+
+void    FourNodeQuadrilateralElement::Refine(std::vector<Node>& globalNodes, std::vector<FourNodeQuadrilateralElement>& elements){
+    Node    node;
+    FourNodeQuadrilateralElement    element;
+
+    int pos = globalNodes.size();
+    for (int i=0; i<4; i++){
+        node.mX = (globalNodes.at(mNodes.at(i)).mX + globalNodes.at(mNodes.at((i+1)%4)).mX) * 0.5;
+        node.mY = (globalNodes.at(mNodes.at(i)).mY + globalNodes.at(mNodes.at((i+1)%4)).mY) * 0.5;
+        node.mBC = mBCs.at(i);
+        if (node.mBC.mType == BCType::N){
+            node.mBC.mX = 0; node.mBC.mY = 0;
+        }
+        globalNodes.push_back(node);
+    }
+    node.mX = 0; node.mY = 0;
+    for (int i=0; i<4; i++){
+        node.mX += globalNodes.at(mNodes.at(i)).mX;
+        node.mY += globalNodes.at(mNodes.at(i)).mY;
+    }
+    node.mX *= 0.25; node.mY *= 0.25;
+    node.mBC = BC::DEFAULT;
+
+    globalNodes.push_back(node);
+
+    element = *this;
+    element.mNodes.at(1) = pos;
+    element.mNodes.at(2) = pos+4;
+    element.mNodes.at(3) = pos+3;
+    element.mBCs.at(1) = BC::DEFAULT;
+    element.mBCs.at(2) = BC::DEFAULT;
+	elements.push_back(element);
+
+	element = *this;
+    element.mNodes.at(0) = pos;
+    element.mNodes.at(2) = pos+1;
+    element.mNodes.at(3) = pos+4;
+    element.mBCs.at(2) = BC::DEFAULT;
+    element.mBCs.at(3) = BC::DEFAULT;
+	elements.push_back(element);
+
+    element = *this;
+    element.mNodes.at(0) = pos+4;
+    element.mNodes.at(1) = pos+1;
+    element.mNodes.at(3) = pos+2;
+    element.mBCs.at(0) = BC::DEFAULT;
+    element.mBCs.at(3) = BC::DEFAULT;
+	elements.push_back(element);
+
+    mNodes.at(0) = pos+3;
+    mNodes.at(1) = pos+4;
+    mNodes.at(2) = pos+2;
+    mBCs.at(0) = BC::DEFAULT;
+    mBCs.at(1) = BC::DEFAULT;
 }
 
 std::istream& operator >> (std::istream& stream, FourNodeQuadrilateralElement& element){
