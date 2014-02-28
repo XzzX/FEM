@@ -110,7 +110,7 @@ Eigen::Matrix<double, 4, 1>&    FourNodeQuadrilateralElement::fq(const std::vect
                     case    3: eta = GAUSS_POINTS.at(j); xi = -1;
                             d = globalNodes.at(mNodes.at(3)).NodeDistance(globalNodes.at(mNodes.at(0))); break;
                 }
-                outfq -= GAUSS_WEIGHTS.at(j) * mBCs.at(i).mX * N(xi, eta, outN) * 2.0 / d;
+                outfq -= GAUSS_WEIGHTS.at(j) * mBCs.at(i).mX * N(xi, eta, outN) * d * 0.5;
             }
         }
     }
