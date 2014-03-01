@@ -14,7 +14,7 @@ std::ostream &operator << (std::ostream &stream, const Configuration& config){
 }
 
 Configuration::Configuration() :
-mFilename("data"), mNumberOfRefinements(2)
+mFilename("data"), mNumberOfRefinements(0)
 {}
 
 void	Configuration::ReadCommandLineParameters( unsigned int argc, char **argv ){

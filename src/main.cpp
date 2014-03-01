@@ -71,13 +71,13 @@ int main(unsigned int argc, char** argv){
     std::cout << "partition at " << nextE << std::endl;
     std::cout << "partitioning and assembling ... ";
     //dE consists of prescribed boundaries
-    Eigen::MatrixXd d(globalNodes.size(), 1);
+    Eigen::MatrixXd globalD(globalNodes.size(), 1);
     for (const Node& nd : globalNodes){
         if (nd.mBC.mType == BCType::D){
             //if first sorting did not fail this should never be false
             assert(nd.mPosition < nextE);
             //for scalar problems only mX is considered boundary value
-            d(nd.mPosition, 0) = nd.mBC.mX;
+            globalD(nd.mPosition, 0) = nd.mBC.mX;
         }
     }
 
@@ -111,15 +111,26 @@ int main(unsigned int argc, char** argv){
 
     std::cout << "solving!!!" << std::endl;
     //perhaps looking for a more suitable solver
-	d.bottomRows(globalNodes.size() - nextE) = KF.colPivHouseholderQr().solve(fF - KFE * d.topRows(nextE));
+	globalD.bottomRows(globalNodes.size() - nextE) = KF.colPivHouseholderQr().solve(fF - KFE * globalD.topRows(nextE));
 
-    std::cout << "outputting temperature map ... ";
-    std::ofstream   ofile(gConfig.mFilename + "_temperaturemap.txt");
-    for (const Node& nd : globalNodes){
-        ofile << nd.mX << "\t" << nd.mY << "\t" << d(nd.mPosition) << std::endl;
-    }
-    ofile.close();
-    std::cout << "done" << std::endl;
+	std::cout << "outputting temperature map ... ";
+	std::ofstream   ofile(gConfig.mFilename + "_temperaturemap.txt");
+	for (const Node& nd : globalNodes) {
+		ofile << nd.mX << "\t" << nd.mY << "\t" << globalD(nd.mPosition) << std::endl;
+	}
+	ofile.close();
+	std::cout << "done" << std::endl;
+
+	std::cout << "post processing ... ";
+	ofile.open(gConfig.mFilename + "_flux.txt");
+	for (const auto& ele : elements) {
+		Eigen::Matrix<double, 4, 4> temp;
+		ele.PostProcess(globalNodes, globalD, temp);
+		for (unsigned int i = 0; i < 4; i++)
+			ofile << temp(i, 0) << "\t" << temp(i, 1) << "\t" << temp(i, 2) << "\t" << temp(i, 3) << std::endl;
+	}
+	ofile.close();
+	std::cout << "done" << std::endl;
 
     return 0;
 }

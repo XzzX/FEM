@@ -221,6 +221,37 @@ void    FourNodeQuadrilateralElement::Refine(std::vector<Node>& globalNodes, std
     mBCs.at(1) = BC::DEFAULT;
 }
 
+Eigen::Matrix<double, 4, 4>&    FourNodeQuadrilateralElement::PostProcess(const std::vector<Node>& globalNodes, const Eigen::MatrixXd& globalD, Eigen::Matrix<double, 4, 4>& outPP) const {
+	Eigen::Matrix<double, 4, 2> X;
+	X << globalNodes.at(mNodes.at(0)).mX, globalNodes.at(mNodes.at(0)).mY,
+		globalNodes.at(mNodes.at(1)).mX, globalNodes.at(mNodes.at(1)).mY,
+		globalNodes.at(mNodes.at(2)).mX, globalNodes.at(mNodes.at(2)).mY,
+		globalNodes.at(mNodes.at(3)).mX, globalNodes.at(mNodes.at(3)).mY;
+
+	Eigen::Matrix<double, 1, 4> G;
+
+	Eigen::Matrix<double, 4, 1> d;
+	for (unsigned int i = 0; i < 4; i++)
+		d(i, 0) = globalD(globalNodes.at(mNodes.at(i)).mPosition, 0);
+
+	typeB	outB;
+	
+	int	k = 0;
+	for (unsigned int i = 0; i < GAUSS_POINTS.size(); i++) {
+		for (unsigned int j = 0; j < GAUSS_POINTS.size(); j++) {
+			G(0, 0) = N1(GAUSS_POINTS.at(i), GAUSS_POINTS.at(j));
+			G(0, 1) = N2(GAUSS_POINTS.at(i), GAUSS_POINTS.at(j));
+			G(0, 2) = N3(GAUSS_POINTS.at(i), GAUSS_POINTS.at(j));
+			G(0, 3) = N4(GAUSS_POINTS.at(i), GAUSS_POINTS.at(j));
+			outPP.block(k, 0, 1, 2) = G*X;
+			B(globalNodes, GAUSS_POINTS.at(i), GAUSS_POINTS.at(j), outB);
+			outPP.block(k, 2, 1, 2) = (- mD * outB * d).transpose();
+			k++;
+		}
+	}
+	return outPP;
+}
+
 std::istream& operator >> (std::istream& stream, FourNodeQuadrilateralElement& element){
     for (auto& node : element.mNodes)
         stream >> node;

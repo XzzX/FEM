@@ -71,7 +71,8 @@ public:
     Eigen::Matrix<double, 4, 1>&    f(const std::vector<Node>& globalNodes, Eigen::Matrix<double, 4, 1>& outf) const ;
 
     bool    CheckBoundaries(const std::vector<Node>& globalNodes) const;
-    void    Refine(std::vector<Node>& globalNodes, std::vector<FourNodeQuadrilateralElement>& elements);
+	void    Refine(std::vector<Node>& globalNodes, std::vector<FourNodeQuadrilateralElement>& elements);
+	Eigen::Matrix<double, 4, 4>&    PostProcess(const std::vector<Node>& globalNodes, const Eigen::MatrixXd& d, Eigen::Matrix<double, 4, 4>& outPP) const;
 };
 
 std::istream& operator >> (std::istream& stream, FourNodeQuadrilateralElement& element);
