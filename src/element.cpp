@@ -149,10 +149,10 @@ Eigen::Matrix<double, 4, 1>&    FourNodeQuadrilateralElement::f(const std::vecto
 }
 
 void    FourNodeQuadrilateralElement::Refine(std::vector<Node>& globalNodes, std::vector<FourNodeQuadrilateralElement>& elements){
+	std::vector<int>	newNodes(5, -1);
     Node    node;
     FourNodeQuadrilateralElement    element;
 
-    int pos = globalNodes.size();
     for (int i=0; i<4; i++){
         node.mX = (globalNodes.at(mNodes.at(i)).mX + globalNodes.at(mNodes.at((i+1)%4)).mX) * 0.5;
         node.mY = (globalNodes.at(mNodes.at(i)).mY + globalNodes.at(mNodes.at((i+1)%4)).mY) * 0.5;
@@ -160,7 +160,16 @@ void    FourNodeQuadrilateralElement::Refine(std::vector<Node>& globalNodes, std
         if (node.mBC.mType == BCType::N){
             node.mBC.mX = 0; node.mBC.mY = 0;
         }
-        globalNodes.push_back(node);
+		for (unsigned int j = 0; j < globalNodes.size(); j++) {
+			if (node.IsEqual(globalNodes.at(j))) {
+				newNodes.at(i) = j;
+				break;
+			}
+		}
+		if (newNodes.at(i) == -1) {
+			globalNodes.push_back(node);
+			newNodes.at(i) = globalNodes.size() - 1;
+		}
     }
     node.mX = 0; node.mY = 0;
     for (int i=0; i<4; i++){
@@ -170,35 +179,44 @@ void    FourNodeQuadrilateralElement::Refine(std::vector<Node>& globalNodes, std
     node.mX *= 0.25; node.mY *= 0.25;
     node.mBC = BC::DEFAULT;
 
-    globalNodes.push_back(node);
+	for (unsigned int j = 0; j < globalNodes.size(); j++) {
+		if (node.IsEqual(globalNodes.at(j))) {
+			newNodes.at(4) = j;
+			break;
+		}
+	}
+	if (newNodes.at(4) == -1) {
+		globalNodes.push_back(node);
+		newNodes.at(4) = globalNodes.size() - 1;
+	}
 
     element = *this;
-    element.mNodes.at(1) = pos;
-    element.mNodes.at(2) = pos+4;
-    element.mNodes.at(3) = pos+3;
+	element.mNodes.at(1) = newNodes.at(0);
+	element.mNodes.at(2) = newNodes.at(4);
+	element.mNodes.at(3) = newNodes.at(3);
     element.mBCs.at(1) = BC::DEFAULT;
     element.mBCs.at(2) = BC::DEFAULT;
 	elements.push_back(element);
 
 	element = *this;
-    element.mNodes.at(0) = pos;
-    element.mNodes.at(2) = pos+1;
-    element.mNodes.at(3) = pos+4;
+	element.mNodes.at(0) = newNodes.at(0);
+	element.mNodes.at(2) = newNodes.at(1);
+	element.mNodes.at(3) = newNodes.at(4);
     element.mBCs.at(2) = BC::DEFAULT;
     element.mBCs.at(3) = BC::DEFAULT;
 	elements.push_back(element);
 
     element = *this;
-    element.mNodes.at(0) = pos+4;
-    element.mNodes.at(1) = pos+1;
-    element.mNodes.at(3) = pos+2;
+	element.mNodes.at(0) = newNodes.at(4);
+	element.mNodes.at(1) = newNodes.at(1);
+	element.mNodes.at(3) = newNodes.at(2);
     element.mBCs.at(0) = BC::DEFAULT;
     element.mBCs.at(3) = BC::DEFAULT;
 	elements.push_back(element);
 
-    mNodes.at(0) = pos+3;
-    mNodes.at(1) = pos+4;
-    mNodes.at(2) = pos+2;
+	mNodes.at(0) = newNodes.at(3);
+	mNodes.at(1) = newNodes.at(4);
+	mNodes.at(2) = newNodes.at(2);
     mBCs.at(0) = BC::DEFAULT;
     mBCs.at(1) = BC::DEFAULT;
 }

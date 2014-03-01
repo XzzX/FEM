@@ -11,6 +11,7 @@ public:
     int     mPosition;  ///< storage for reordered position
 
     double  NodeDistance(const Node& nd2) const;
+	bool	IsEqual(const Node& nd2) const;
     };
 
 
