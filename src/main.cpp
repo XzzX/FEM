@@ -3,6 +3,7 @@
 #include    <iostream>
 #include    <vector>
 
+#include	"configuration.h"
 #include    "node.h"
 #include    "element.h"
 
@@ -10,7 +11,9 @@
 ///!!!!!!!!!!!!ATTENTION!!!!!!!!!!!!!!!!
 ///Pay attention to std::vector relocation after push_back especially for refinement loop -> kills this pointer!!!!!!!
 ///!!!!!!!!!!!!ATTENTION!!!!!!!!!!!!!!!!
-int main(){
+int main(unsigned int argc, char** argv){
+	gConfig.ReadCommandLineParameters(argc, argv);
+
     std::vector<Node>                           globalNodes; ///< all nodes in global numbering
 	globalNodes.reserve(1000);
     std::vector<FourNodeQuadrilateralElement>   elements;    ///< list of all elements
@@ -18,7 +21,7 @@ int main(){
 
     std::cout << "reading nodes ... ";
     Node node;
-    std::ifstream    iFile("nodes.txt");
+    std::ifstream    iFile(gConfig.mFilename + "_nodes.txt");
     if (!iFile) std::cerr << "unknown node file" << std::endl;
     while   (!iFile.eof()){
         iFile >> node;
@@ -29,7 +32,7 @@ int main(){
 
     std::cout << "reading elements ... ";
     FourNodeQuadrilateralElement element;
-    iFile.open("elements.txt");
+    iFile.open(gConfig.mFilename + "_elements.txt");
     if (!iFile) std::cerr << "unknown element file" << std::endl;
     while   (!iFile.eof()){
         iFile >> element;
@@ -39,7 +42,7 @@ int main(){
     std::cout << elements.size() << " read" << std::endl;
 
     std::cout << "refining mesh ... ";
-	for (unsigned int n = 0; n < 4; n++){
+	for (unsigned int n = 0; n < gConfig.mNumberOfRefinements; n++){
 		unsigned int	maxElements = elements.size();
 		for (unsigned int i = 0; i < maxElements; i++){
 			elements.at(i).Refine(globalNodes, elements);
@@ -111,7 +114,7 @@ int main(){
 	d.bottomRows(globalNodes.size() - nextE) = KF.colPivHouseholderQr().solve(fF - KFE * d.topRows(nextE));
 
     std::cout << "outputting temperature map ... ";
-    std::ofstream   ofile("temperaturemap.txt");
+    std::ofstream   ofile(gConfig.mFilename + "_temperaturemap.txt");
     for (const Node& nd : globalNodes){
         ofile << nd.mX << "\t" << nd.mY << "\t" << d(nd.mPosition) << std::endl;
     }

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate
 
-x, y, z = np.loadtxt("temperaturemap.txt").transpose()
+x, y, z = np.loadtxt("data_temperaturemap.txt").transpose()
 
 # Set up a regular grid of interpolation points
 xi, yi = np.linspace(x.min(), x.max(), 300), np.linspace(y.min(), y.max(), 300)
@@ -13,5 +13,6 @@ zi = scipy.interpolate.griddata((x, y), z, (xi, yi), method='linear')
 
 plt.imshow(zi, vmin=z.min(), vmax=z.max(), origin='lower',
            extent=[x.min(), x.max(), y.min(), y.max()])
+plt.scatter(x, y, c=z)
 plt.colorbar()
 plt.show()
